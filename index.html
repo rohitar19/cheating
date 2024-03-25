@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    
+    <pre>
+        <code>
+-------create database library_025;
+use library_025;
+-- table creation
+create table publisher(
+    pname varchar(20),
+    paddress varchar(20),
+    phone bigint,
+    primary key(pname)
+);
+create table book(
+    bk_id int,
+    title varchar(20),
+    pname varchar(20),
+    pyear int,
+    primary key(bk_id),
+    foreign key(pname) references publisher(pname) on delete cascade
+);
+create table author(
+    bk_id int,
+    aname varchar(20),
+    primary key(bk_id,aname),
+    foreign key(bk_id) references book(bk_id) on delete cascade
+);
+create table branch(
+    br_id int,
+    br_name varchar(20),
+    badderss varchar(20),
+    primary key(br_id)
+);
+create table copies(
+    bk_id int,
+    br_id int,
+    no_of_copies int,
+    primary key(bk_id,br_id),
+    foreign key(bk_id) references book(bk_id) on delete cascade,
+    foreign key(br_id) references branch(br_id) on delete cascade
+);
+create table lending(
+    bk_id int,
+    br_id int,
+    card_no int,
+    date_out date,
+    due_date date,
+    primary key (bk_id,br_id,card_no),
+    foreign key(bk_id) references book(bk_id) on delete cascade,
+    foreign key(br_id) references branch(br_id) on delete cascade
+);
+
+-- inserting values
+insert into publisher values('mcgrawhill','bengaluru','9480506312');
+insert into publisher values('oxford','bengaluru','9480506313');
+insert into publisher values('pearson','new delhi','9480506314');
+insert into publisher values('random house','hyderabad','9480506315');
+insert into publisher values('sapna','chenai','9480506316');
+
+insert into book values(1,'dbms','mcgrawhill',2017);
+insert into book values(2,'adbms','mcgrawhill',2016);
+insert into book values(3,'cn','pearson',2016);
+insert into book values(4,'cg','oxford',2015);
+insert into book values(5,'os','pearson',2016);
+
+insert into author values(1,'navathe');
+insert into author values(2,'navathe');
+insert into author values(3,'tenenbaum');
+insert into author values(4,'edward');
+insert into author values(5,'galvin');
+
+insert into branch values(10,'rr nagar','bengaluru');
+insert into branch values(11,'manipal','bengaluru');
+insert into branch values(12,'acit','bengaluru');
+insert into branch values(13,'rajajinagar','bengaluru');
+insert into branch values(14,'acharya','mangaluru');
+
+insert into copies values(1,10,10);
+insert into copies values(1,11,5);
+insert into copies values(2,12,2);
+insert into copies values(2,13,5);
+insert into copies values(3,14,7);
+insert into copies values(5,11,3);
+insert into copies values(4,10,1);
+
+insert into lending values(1,10,101,'2017-01-01','2017-06-01');
+insert into lending values(1,11,104,'2017-01-11','2017-03-11');
+insert into lending values(2,13,101,'2017-02-17','2017-04-21');
+insert into lending values(3,14,101,'2017-03-15','2017-07-15');
+insert into lending values(4,11,101,'2017-04-12','2017-05-12');
+
+-- q1
+
+select b.bk_id , b.title ,b.pname,a.aname,c.no_of_copies,c.br_id
+from book b,author a,copies c
+where b.bk_id = a.bk_id and
+b.bk_id = c.bk_id;
+
+-- q2
+
+select card_no
+from lending
+where date_out between '2017-01-01' and '2017-06-30'
+group by card_no
+having count(*) > 3;
+
+-- q3
+delete from book 
+where bk_id = 3;
+
+select * from book;
+
+-- q4 in manual or refer record for other one
+
+create table bookpartition
+(
+book_id int,
+pub_year int, 
+publisher_name varchar(10))
+partition by range(pub_year)
+(partition p0 values less than(2000),
+partition p1 values less than(2005),
+partition p2 values less than(2010));
+
+insert into bookpartition values('1',1998, 'vikas');
+insert into bookpartition values('3',1999, 'subash');
+insert into bookpartition values('2',2002, 'pearson');
+insert into bookpartition values('5',2005, 'vikas');
+insert into bookpartition values('7',2008, 'subash');
+insert into bookpartition values('8',2007, 'pearson');
+
+select * from bookpartition;
+select * from bookpartition partition(p0);
+select * from bookpartition partition(p1);
+select * from bookpartition partition(p2);
+
+
+-- q5
+
+create view book_count as
+select b.bk_id,b.title,c.no_of_copies
+from book b , copies c
+where b.bk_id =  c.bk_id ;
+
+select * from book_count;
+        </code>
+    </pre>
+
+    <pre>
+        <code>
+-=---creating database
+-----create database order_025;
+use order_025;
+-- table creation
+
+create table salesman(
+    sid int,
+    sname varchar(20),
+    scity varchar(20),
+    commision int,
+    primary key(sid)
+);
+
+create table customer(
+    cid int,
+    cname varchar(20),
+    ccity varchar(20),
+    grade int,
+    sid int,
+    primary key(cid),
+    foreign key(sid) references salesman(sid) on delete cascade
+);
+
+create table orders(
+    o_no int,
+    pur_amount int,
+    o_date date,
+    cid int,
+    sid int,
+    primary key(o_no),
+    foreign key(cid) references customer(cid) on delete cascade,
+    foreign key(sid) references salesman(sid) on delete cascade
+);
+
+-- inserting values
+
+insert into salesman values (1000,'arun','mangalore',15),
+(2000,'harsha','bangalore',25),
+(3000,'sagar','myore',20),
+(4000,'priya','mangalore',30),
+(5000,'divya','delhi',15);
+
+insert into customer values (10,'ravi','bangalore',100,1000),
+(12,'shwetha','mangalore',300,1000),
+(14,'shalini','chenai',500,2000),
+(16,'sushmitha','bangalore',700,2000),
+(18,'pramya','bangalore',500,3000);
+
+insert into orders values(60,5000,'2017-01-05',10,1000),
+(62,3000,'2017-01-17',10,2000),
+(64,4000,'2017-02-17',12,2000),
+(66,4500,'2017-03-17',14,3000),
+(68,2000,'2017-02-17',16,1000);
+
+-- queries 1
+
+select grade,count(*) as count
+from customer
+where grade > (
+    select avg(grade)
+    from customer
+    where ccity='bangalore'
+    )
+group by grade;
+
+-- q2
+
+select s.sname,s.sid
+from customer c , salesman s
+where c.sid = s.sid
+group by s.sid
+having count(s.sid) > 1;
+
+-- q3
+
+(select sname,'exists' as samecity
+from salesman s 
+where scity  in (select ccity 
+                    from customer c 
+                    where c.sid=s.sid)
+)
+union
+(select s.sname,'not exists' as samecity
+from salesman s 
+where s.scity not in (select c.ccity 
+                    from customer c 
+                    where c.sid=s.sid)
+)
+
+-- q4
+
+select s.sname,s.sid,o.pur_amount,o.o_date
+from salesman s,orders o
+where s.sid = o.sid and
+o.pur_amount = (
+				select max(pur_amount)
+	  			from orders c
+				where c.o_date = o.o_date
+				);
+
+-- q5
+
+delete from salesman where sid=1000;
+        </code>
+    </pre>
+
+   <pre>
+    <code>
+----------- create database movie_025;
+use movie_025;
+-- creating tables
+create table actor(
+    act_id int,
+    act_name varchar(20),
+    gender char(1),
+    primary key(act_id)
+);
+
+create table director(
+    dir_id int,
+    dir_name varchar(20),
+    phone bigint,
+    primary key(dir_id)
+);
+
+create table movie(
+    mov_id int,
+    title varchar(20),
+    lang varchar(20),
+    mov_year int,
+    dir_id int,
+    primary key(mov_id),
+    foreign key(dir_id) references director(dir_id) on delete set null
+);
+
+create table moviecast(
+    act_id int,
+    mov_id int,
+    role varchar(20),
+    primary key(act_id,mov_id),
+    foreign key (act_id) references actor(act_id) on delete cascade,
+    foreign key (mov_id) references movie(mov_id) on delete cascade
+);
+
+
+create table rating(
+    mov_id int,
+    rev_stars int,
+    primary key(mov_id,rev_stars),
+    foreign key(mov_id) references movie(mov_id) on delete cascade
+);
+
+-- inserting values
+
+insert into  actor values(301,'anushka','F');
+insert into  actor values(302,'prabhas','M');
+insert into  actor values(303,'punith','M');
+insert into  actor values(304,'jermy','M');
+insert into  actor values(305,'yash','M');
+
+insert into  director values(70,'hitchcock',7022426931);
+insert into  director values(71,'rajmouli',7022426932);
+insert into  director values(72,'steven spielberg',7022426933);
+insert into  director values(73,'farman',7022426934);
+insert into  director values(74,'martin',7022426935);
+
+insert into movie values(1001,'bahubali-2','telugu',2017,70);
+insert into movie values(1002,'singham','hindi',2008,70);
+insert into movie values(1003,'golmal-2','telugu',2011,70);
+insert into movie values(1004,'allthebest','hindi',2015,70);
+insert into movie values(1005,'akash','kannada',2009,70);
+
+
+insert into moviecast values(301,1001,'heroine');
+insert into moviecast values(302,1002,'hero');
+insert into moviecast values(303,1003,'guest');
+insert into moviecast values(304,1004,'hero');
+insert into moviecast values(305,1005,'heroine');
+
+insert into rating values(1001,4);
+insert into rating values(1002,2);
+insert into rating values(1003,5);
+insert into rating values(1004,3);
+insert into rating values(1005,4);
+
+-- query 1
+
+select m.title
+from movie m,director d
+where m.dir_id = d.dir_id and d.dir_name = 'hitchcock';
+
+-- 2
+select m.title
+from movie m,moviecast mv
+where m.mov_id = mv.mov_id and mv.act_id in (
+    select act_id from moviecast
+    group by act_id having count(act_id) >= 2
+    )
+group by m.title
+having count(*) >= 1;
+
+insert into moviecast values(301,1002,'heroine');
+
+-- 3
+
+select a.act_name,c.title,c.mov_year
+from actor a join moviecast b on a.act_id = b.act_id
+    join movie c on b.mov_id = c.mov_id
+where c.mov_year not between 2000 and 2015;
+
+-- 4
+
+select m.title,max(r.rev_stars)
+from movie m ,rating r
+where m.mov_id = r.mov_id
+group by m.mov_id
+having max(rev_stars)>=1
+order by m.title;
+
+-- 5
+
+update rating set rev_stars = 5
+where mov_id in (select m.mov_id
+    from movie m,director d
+    where m.dir_id = d.dir_id and
+    d.dir_name='hitchcock');
+    </code>
+   </pre>
+
+   <pre>
+    <code>
+        ------- create database college_025;
+use college_025;
+create table student(
+    usn varchar(20),
+    sname varchar(20),
+    saddress varchar(20),
+    phone bigint,
+    gender char(1),
+    primary key(usn)
+);
+
+create table semsec(
+    ssid varchar(20),
+    sem int,
+    section char(1),
+    primary key(ssid)
+);
+
+create table class(
+    usn varchar(20),
+    ssid varchar(20),
+    primary key(usn,ssid),
+    foreign key(usn) references student(usn) on delete cascade,
+    foreign key(ssid) references semsec(ssid) on delete cascade
+);
+
+create table subject(
+    subcode varchar(20),
+    title varchar(20),
+    sem int,
+    credits int,
+    primary key(subcode)
+);
+
+create table iamarks(
+    usn varchar(20),
+    subcode varchar(20),
+    ssid varchar(20),
+    test1 int,
+    test2 int,
+    test3 int,
+    finalia int,
+    primary key(usn,subcode,ssid),
+    foreign key(usn) references student(usn) on delete cascade,
+    foreign key(ssid) references semsec(ssid) on delete cascade,
+    foreign key(subcode) references subject(subcode) on delete cascade
+);
+insert into student values ('cs101', 'shine' , 'bihar' , '1234567890' , 'F' );
+insert into student values ('cs102', 'sahil' , 'patna' , '1234567890' , 'M' );
+insert into student values ('cs103', 'sanu' , 'delhi' , '1234567890' , 'F' );
+insert into student values ('cs104', 'rohit' , 'up' , '1234567890' , 'M' );
+insert into student values ('cs105', 'sonal' , 'mp' , '1234567890' , 'F' );
+
+insert into semsec values ('cs4a' ,4 , 'a') , ('cs4b' ,4 , 'b') ,('cs4c' ,4 , 'c'),('cs5a' ,5 , 'a') ,('cs5b' ,5 , 'b') ;
+
+insert into class values ('cs101' , 'cs4a' ) , ('cs102' , 'cs4b' ), ('cs103' , 'cs4c' ),('cs104' , 'cs4c' ),('cs105' , 'cs4c' );
+
+insert into subject values ('18cs18' , 'maths' , 4, 3),
+('18cs20' , 'atcd' , 4, 3),
+('18cs21' , 'dbms' , 5, 5);
+insert into subject values ('18cs22' , 'pai' , 4, 3),
+('18cs23' , 'cn' , 5, 3);
+
+insert into iamarks values ('cs101','18cs18','cs4a', 5,2,8,NULL),('cs102','18cs20','cs4b', 10,12,18,NULL),
+('cs103','18cs21','cs4c', 11,2,8,NULL),('cs104','18cs22','cs5a', 2,1,8,NULL) ,
+('cs105','18cs23','cs5b', 2,2,8,NULL);
+
+select s.*, ss.ssid , c.usn
+from student s , semsec ss , class c
+where s.usn=c.usn and ss.ssid=c.ssid and ss.sem='4' and ss.section='c';
+
+select ss.sem,ss.section,s.gender,count(s.gender) as count
+from semsec ss,student s,class C
+where s.usn = c.usn and c.ssid = ss.ssid
+group by ss.sem,ss.section,s.gender
+order by ss.sem;
+
+
+create view test1_marks as
+select subcode,test1
+from iamarks
+where usn = 'cs101';
+
+select * from test1_marks;
+
+
+CREATE VIEW best_two_finder AS
+SELECT
+    usn,
+    subcode,
+    GREATEST(test1, test2, test3) AS highest,
+    CASE
+        WHEN test1 = GREATEST(test1, test2, test3) AND test2 != test3 THEN GREATEST(test2, test3)
+        WHEN test2 = GREATEST(test1, test2, test3) AND test1 != test3 THEN GREATEST(test1, test3)
+        ELSE GREATEST(test1, test2)
+    END AS secondhighest
+FROM
+    iamarks;
+
+select * from best_two_finder;
+
+create view avg2 as 
+select usn,subcode,((highest+secondhighest)/2) as final 
+from best_two_finder;
+
+select * from avg2;
+
+SET SQL_SAFE_UPDATES = 0;
+
+
+UPDATE iamarks
+join avg2
+on iamarks.subcode=avg2.subcode
+set iamarks.finalia=avg2.final;
+
+select * from iamarks;
+
+
+
+select s.*,
+case
+    when i.finalia between 17 and 20 THEN 'outstanding'
+    when i.finalia between 12 and 16 THEN 'average'
+    else 'week'
+end as cat
+from student s,iamarks i,subject sub
+where s.usn = i.usn and i.subcode = sub.subcode and sub.sem = 4;
+    </code>
+   </pre>
+
+   <pre>
+    <code>
+        create database employee_025;
+
+create table department(
+	d_no varchar(20),
+	dname varchar(20),
+	mgr_ssn varchar(20),
+	mgr_sdate date,
+	primary key(d_no)
+);
+
+create table employee(
+    ssn varchar(20),
+    ename varchar(20),
+    eaddress varchar(20),
+    sex char(1),
+    salary int,
+    super_ssn varchar(20),
+    d_no varchar(20),
+    primary key(ssn),
+    foreign key(super_ssn) references employee(ssn),
+    foreign key(d_no) references department(d_no)
+);
+
+alter table department
+add foreign key(mgr_ssn) references employee(ssn);
+
+create table dlocation(
+    d_no varchar(20),
+    dloc varchar(20),
+    primary  key(d_no,dloc),
+    foreign key(d_no) references department(d_no)
+);
+
+create table project(
+    p_no int,
+    pname varchar(20),
+    ploc varchar(20),
+    d_no varchar(20),
+    primary key(p_no),
+    foreign key(d_no) references department(d_no)
+);
+
+create table works_on(
+    ssn varchar(20),
+    p_no int,
+    phours int,
+    primary key(ssn,p_no),
+    foreign key(ssn) references employee(ssn),
+    foreign key(p_no) references project(p_no)
+);
+
+insert into employee values('ABC01','ben scott','bangalore','M',450000,NULL,NULL);
+insert into employee values('ABC02','harry smith','bangalore','M',500000,NULL,NULL);
+insert into employee values('ABC03','lean baker','bangalore','M',700000,NULL,NULL);
+insert into employee values('ABC04','martin scott','mysore','M',500000,NULL,NULL);
+insert into employee values('ABC05','manu','mangalore','M',650000,NULL,NULL);
+insert into employee values('ABC06','neeta sharma','bangalore','F',800000,NULL,NULL);
+insert into employee values('ABC07','vikas','bangalore','M',500000,NULL,NULL);
+
+insert into department values('1','accounts','ABC07','2016-01-03');
+insert into department values('2','it','ABC06','2017-02-04');
+insert into department values('3','hr','ABC01','2016-04-03');
+insert into department values('4','helpdesk','ABC05','2017-06-03');
+insert into department values('5','sales','ABC04','2017-01-08');
+
+update employee set super_ssn = NULL , d_no = '3' where ssn = 'ABC01';
+update employee set super_ssn = 'ABC03' , d_no = '4' where ssn = 'ABC02';
+update employee set super_ssn = 'ABC04' , d_no = '5' where ssn = 'ABC03';
+update employee set super_ssn = 'ABC06' , d_no = '4' where ssn = 'ABC04';
+update employee set super_ssn = 'ABC06' , d_no = '2' where ssn = 'ABC05';
+update employee set super_ssn = 'ABC02' , d_no = '1' where ssn = 'ABC06';
+update employee set super_ssn = 'ABC05' , d_no = '4' where ssn = 'ABC07';
+
+insert into dlocation values('1','bengalore');
+insert into dlocation values('2','bengalore');
+insert into dlocation values('3','bengalore');
+insert into dlocation values('4','mysore');
+insert into dlocation values('5','mysore');
+
+insert into project values(1000,'iot','bengalore','5');
+insert into project values(1001,'cloud','bengalore','5');
+insert into project values(1002,'bigdata','bengalore','5');
+insert into project values(1003,'sensors','bengalore','3');
+insert into project values(1004,'bank management','bengalore','1');
+insert into project values(1005,'salary managemaent','bengalore','1');
+insert into project values(1006,'open stack','bengalore','4');
+insert into project values(1007,'smart city','bengalore','2');
+
+insert into works_on values('ABC02',1000,4);
+insert into works_on values('ABC02',1001,6);
+insert into works_on values('ABC03',1002,8);
+insert into works_on values('ABC05',1000,10);
+insert into works_on values('ABC06',1001,3);
+insert into works_on values('ABC04',1002,4);
+insert into works_on values('ABC01',1002,5);
+insert into works_on values('ABC07',1004,6);
+insert into works_on values('ABC02',1002,4);
+
+--queries 1
+
+(select distinct p.p_no
+from project p
+where p.d_no in (select d.d_no
+from employee e,department d
+where e.ssn = d.mgr_ssn and e.ename like '%scott'
+))
+union
+(select distinct p.p_no
+from  employee e ,works_on w , project p 
+where w.ssn = e.ssn and w.p_no=p.p_no and e.ename like '%scott');
+
+--2
+
+select e.ename ,1.1*e.salary as incr_sal
+from  employee e ,works_on w , project p 
+where w.ssn = e.ssn and w.p_no=p.p_no and p.pname = 'iot';
+
+--3
+
+select sum(e.salary) , max(e.salary) , min(e.salary),avg(e.salary)
+from employee e,department d
+where e.d_no = d.d_no and d.dname = 'accounts';
+
+--4
+
+select e.ename
+from employee e
+where not exists (
+    select p_no
+    from project
+    where d_no='5' and
+    p_no not in (
+        select p_no
+        from works_on
+        where ssn = e.ssn
+));
+
+
+--5
+
+insert into employee values('ABC08','neeta sharma','bangalore','F',800000,'ABC06','1');
+insert into employee values('ABC09','neeta sharma','bangalore','F',800000,'ABC06','1');
+insert into employee values('ABC010','neeta sharma','bangalore','F',800000,'ABC06','1');
+insert into employee values('ABC011','neeta sharma','bangalore','F',800000,'ABC06','1');
+insert into employee values('ABC012','neeta sharma','bangalore','F',800000,'ABC06','1');
+
+select d.d_no,count(*)
+from department d,employee e
+where d.d_no = e.d_no and
+e.salary > 600000 and
+d.d_no in (
+    select e1.d_no
+    from employee e1
+    group by e1.d_no
+    having count(*) > 5
+)
+group by d.d_no;
+    </code>
+   </pre>
+
+</body>
+</html>
